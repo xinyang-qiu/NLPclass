@@ -1,9 +1,4 @@
 
-# coding: utf-8
-
-# In[49]:
-
-
 import glob
 import numpy as np
 import random
@@ -18,16 +13,11 @@ import torch.nn.functional as F
 from collections import Counter
 
 
-# In[2]:
-
 
 train_pos_txt = glob.glob("/Users/xinyangqiu/Downloads/aclImdb/train/pos/*.txt")
 train_neg_txt = glob.glob("/Users/xinyangqiu/Downloads/aclImdb/train/neg/*.txt")
 test_pos_txt = glob.glob("/Users/xinyangqiu/Downloads/aclImdb/test/pos/*.txt")
 test_neg_txt = glob.glob("/Users/xinyangqiu/Downloads/aclImdb/test/neg/*.txt")
-
-
-# In[3]:
 
 
 def read_txt(txt,ls):
@@ -47,9 +37,6 @@ num_test_neg = read_txt(test_neg_txt,test_x)
 test_y = [1] * num_test_pos + [0] * num_test_neg
 
 
-# In[4]:
-
-
 random.Random(4).shuffle(train_x)
 random.Random(4).shuffle(train_y)
 
@@ -58,22 +45,11 @@ val_y =train_y[:5000]
 train_x = train_x[5000:]
 train_y = train_y[5000:]
 
-
-# In[5]:
-
-
 tokenizer = spacy.load('en_core_web_sm')
 punctuations = string.punctuation
 def tokenize(sent):
   tokens = tokenizer(sent)
   return [token.text.lower() for token in tokens if (token.text not in punctuations)]
-
-
-# In[17]:
-
-
-#def lower_case_remove_punc(parsed):
-#    return [token.text.lower() for token in parsed if (token.text not in punctuations)]
 
 def tokenizer_dt(dataset):
     token_dataset = []
@@ -87,17 +63,9 @@ def tokenizer_dt(dataset):
 
     return token_dataset, all_tokens
 
-
-# In[21]:
-
-
 token_train, all_train_tokens = tokenizer_dt(train_x)
 token_test, all_test_tokens = tokenizer_dt(test_x)
 token_val, all_val_tokens = tokenizer_dt(val_x)
-
-
-# In[24]:
-
 
 max_vocab_size = 10000
 PAD_IDX = 0
@@ -116,9 +84,6 @@ def build_vocab(all_tokens):
 token2id, id2token = build_vocab(all_train_tokens)
 
 
-# In[33]:
-
-
 def token2index_dataset(tokens_data):
     indices_data = []
     for tokens in tokens_data:
@@ -129,15 +94,6 @@ def token2index_dataset(tokens_data):
 train_data_indices = token2index_dataset(token_train)
 test_data_indices = token2index_dataset(token_test)
 val_data_indices = token2index_dataset(token_val)
-
-# double checking
-print ("Train dataset size is {}".format(len(train_data_indices)))
-print ("Test dataset size is {}".format(len(test_data_indices)))
-print ("Val dataset size is {}".format(len(val_data_indices)))
-
-
-# In[53]:
-
 
 MAX_SENTENCE_LENGTH = 200
 class NewsGroupDataset(Dataset):
@@ -168,7 +124,7 @@ def newsgroup_collate_func(batch):
         data_list.append(padded_vec)
     return [torch.from_numpy(np.array(data_list)), torch.LongTensor(length_list), torch.LongTensor(label_list)]
 
-# create pytorch dataloader
+
 BATCH_SIZE = 32
 train_dataset = NewsGroupDataset(train_data_indices, train_y)
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset, 
@@ -189,7 +145,6 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                            shuffle=False)
 
 
-# In[55]:
 
 
 class BagOfWords(nn.Module):
@@ -205,8 +160,6 @@ class BagOfWords(nn.Module):
         out = self.linear(out.float())
         return out
 
-
-# In[89]:
 
 
 def test_model(loader, model):
@@ -247,10 +200,6 @@ def output_model(emb_dim,learning_rate,num_epochs):
     return [emb_dim,learning_rate,num_epochs,test_model(val_loader, model),test_model(test_loader, model)]
 
 
-# In[ ]:
-
-
-#learning_rate = [0.01,0.02,0.025,0.05,0.1,0.2,0.5,]
 learning_rate = [0.01,0.02]
 emb_dim = [50,100,200,300,500]
 num_epochs = [10,20,30,40,50]
@@ -259,10 +208,6 @@ for i in emb_dim:
     for j in learning_rate:
         for k in num_epochs:
             result.append(output_model(emb_dim = i,learning_rate = j,num_epochs = k))
-
-
-# In[ ]:
-
 
 result
 
